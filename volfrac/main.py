@@ -3,13 +3,23 @@
 import vector, lineseg, geometry
 
 if __name__ == '__main__':
-	dom = geometry.cartesianDomain(1,1,4,4)
+	geometry.geometryGenerator('geo2.dat', 'circle', 6)
+
+	dom = geometry.cartesianDomain(15,15,30,30)
+
 	pts = dom.ptlist()
+	g = geometry.geometry('geo2.dat')
 
-	print(dom.size())
+	nx, ny = dom.size()
+	for i in range(0, nx-1):
+		for j in range(0, ny-1):
+			c = dom.cell(i,j)
 
-	for i in range(0, dom.size()[0]):
-		print(dom.pt(i,i))
-
-	for pt in pts:
-		print(pt)
+			print(i, j, end='\t')
+			if (c.intersect(g)):
+				print(c.intersectedArea(g))
+			elif c.inside(g):
+				print(c.getarea())
+			else:
+				print(0.0)
+	

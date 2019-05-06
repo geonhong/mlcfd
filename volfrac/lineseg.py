@@ -62,7 +62,7 @@ def intersect(ls1, ls2, Debug=False):
 		print('(q-p)xr = ', numu)
 		print('rxs = ', den)
 
-	pint = vector.vector([None]*p.size())
+	psect = vector.vector([None]*p.size())
 	intersected = False
 
 	if vector.mag(den)<1e-10:
@@ -91,11 +91,11 @@ def intersect(ls1, ls2, Debug=False):
 				print('q+sxu =', pintu)
 
 			if vector.mag(pintt-pintu)<1e-10:
-				pint = pintt
+				psect = pintt
 				intersected = True
 
 			else:
 				# Two lines are not parallel but do not intersected
 				pass
 	
-	return pint, intersected
+	return intersected, psect

@@ -60,8 +60,8 @@ class geometry:
 	def segments(self):
 		return self.ls
 	
-	def inside(self, p):
-		ldet = lineseg.lineseg(p, vector.vector(p.x()+1e5, p.y()))
+	def _check_inside(self, ps, pe):
+		ldet = lineseg.lineseg(ps, pe)
 		nsects = 0
 		psects = []
 
@@ -82,7 +82,22 @@ class geometry:
 					nsects += 1
 					psects.append(psect)
 
-		if nsects % 2 == 0:
+		return nsects
+
+	def inside(self, p):
+		ppos = vector.vector(p.x()+1e5, p.y())
+		pneg = vector.vector(p.x()-1e5, p.y())
+
+		nsect_pos = self._check_inside(p, ppos)
+		nsect_neg = self._check_inside(p, pneg)
+
+		# The given point is out of this geometry if either
+		# the number of intersect point in positive x direction or 
+		# negative x direction is zero
+		if nsect_pos == 0 or nsect_neg == 0:
+			return False
+
+		if nsect_pos % 2 == 0 or nsect_neg % 2==0:
 			return False
 		else:
 			return True
@@ -103,6 +118,36 @@ class geometry:
 			iseg += 1
 
 		return isectd, psect, indsect
+
+	def boundingbox(self):
+		pmin = vector.vector(1e100, 1e100)
+		pmax = vector.vector(-1e100, -1e100)
+		for p in self.pts:
+			pmin.v_[0] = min(pmin.x(), p.x())
+			pmin.v_[1] = min(pmin.y(), p.y())
+			pmax.v_[0] = max(pmax.x(), p.x())
+			pmax.v_[1] = max(pmax.y(), p.y())
+
+		return pmin, pmax
+
+'''
+Check if a vector is in a vectorList
+'''
+def iselem(v, vl):
+	chk = 1e-20
+	if isinstance(vl, list):
+		for e in vl:
+			chk = vector.mag(v - e)
+			if chk<1e-10:
+				return True
+	
+	else:
+		dv = v-vl
+		chk = np.sqrt(dv*dv)
+		if chk<1e-10:
+			return True
+
+	return False
 
 '''
 A class for defining a cell
@@ -150,6 +195,7 @@ class cell:
 		return s
 	
 	#--- Helper function
+	#- Check if this cell intersects the geometry g
 	def intersect(self, g):
 		ninside = 0
 		for p in self.points():
@@ -161,6 +207,7 @@ class cell:
 		else:
 			return True
 	
+	#- Check if this cell is inside a closed geometry g
 	def inside(self, g):
 		ninside = 0
 		for p in self.points():
@@ -172,6 +219,7 @@ class cell:
 		else:
 			return False
 
+	#- Estimate the area of this cell
 	def getarea(self):
 		sumA = 0.0
 		for i in range(0, self.totalSize()-2):
@@ -181,17 +229,18 @@ class cell:
 
 		return sumA
 
-	def intersectedArea(self, g):
+	#- Estimate the area of intersected with the geometry g
+	def intersectedArea(self, g, Debug=False):
 		if not self.intersect(g):
 			return -1
 
-		# search the pivot point
+		#--- search the pivot point
 		ist = 0
 		poly = []
 		for i in range(0, self.size()):
 			if g.inside(self.pts[i]):
-				ist = i
 				poly.append(self.pts[ist])
+				ist = i
 				break
 
 			lseg = lineseg.lineseg(self.pts[i], self.pts[i+1])
@@ -201,27 +250,44 @@ class cell:
 				ist = i
 				break
 
-		# Walk along boundary of intersected area
+		#--- Walk along boundary of intersected area
+		# cag : cell as geometry
 		cag = geometry(self.points(False))
+
+		# Loop over the cell sides
 		for i in range(ist+1, self.size()+1):
 			p = self.pts[i]
 
+			# f: a side of this cell
 			f = lineseg.lineseg(self.pts[i-1], self.pts[i])
+
+			# Check if the side f intersect with given geometry g
+			#   isectd: boolean if g and f intersected or not
+			#	psect : intersected point
+			#	iseg  : index of intersected segment of g
 			isectd, psect, iseg = g.intersect(f)
+
 			if isectd:
-				piden = vector.mag(poly[-1]-psect)
-				if piden>1e-10:
+				# Check if psect has been added to poly already
+				if not iselem(psect, poly):
 					poly.append(psect)
 
+				# Walk along the geometry g to find another intersect point of
+				# this cell and g. The geometry points inbetween the two
+				# intersected points are added to the poly
 				for i in range(iseg+1, g.size()):
 					pchk = g.pts[i]
-					piden = vector.mag(poly[-1]-pchk)
-					if cag.inside(pchk) and piden>1e-10:
+					if cag.inside(pchk) and \
+					   not iselem(pchk, poly):
 						poly.append(pchk)
 
-			piden = vector.mag(poly[-1]-p)
-			if g.inside(p) and piden>1e-10:
+			if g.inside(p) and not iselem(p, poly):
 				poly.append(p)
+
+		if Debug:
+			print('\nPoints in this poly:')
+			for l in poly:
+				print(l)
 
 		# Estimate the area
 		if len(poly) == 3:
@@ -245,6 +311,13 @@ class cartesianDomain:
 	def __init__(self, x, y, nx, ny):
 		self.xl = np.linspace(-0.5*x, 0.5*x, nx+1)
 		self.yl = np.linspace(-0.5*y, 0.5*y, ny+1)
+
+	def __str__(self):
+		s = 'bounding box: ' + \
+			'(' + str(self.xl[0]) + ' ' + str(self.yl[0]) + ')' + \
+			'(' + str(self.xl[-1]) + ' ' + str(self.yl[-1]) + ')'
+		return s
+			
 
 	#--- Access
 	def pt(self, i, j):

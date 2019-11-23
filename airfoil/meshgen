@@ -1,0 +1,4 @@
+#!/bin/bash
+
+m4 -I constant/airfoilData system/blockMeshDict.m4 > system/blockMeshDict
+blockMesh

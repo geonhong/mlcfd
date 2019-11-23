@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+#==================================================================================
+#   lineseg.py
+#   ~~~~~~~~~~
+#   A class for defining a line segment.
+#   It consists of two points: the start point and the end point.
+#==================================================================================
 
 import numpy as np
 import vector
@@ -9,20 +15,25 @@ class lineseg:
 		self.vs = vs
 		self.ve = ve
 	
-	# Access
+	#--- Access
+	#- Return the start point
 	def start(self):
 		return self.vs
 	
+	#- Return the end point
 	def end(self):
 		return self.ve
 
+	#- Return the direction vector from the start point to the end point
 	def dvec(self):
 		return self.ve - self.vs
 
-	# Helper function
+	#--- Helper functions
+	#- Magnitude of the line segment
 	def mag(self):
 		return vector.mag(self.dvec())
 
+	#- Check if the given point is on the line segment
 	def onseg(self, p, Debug=False):
 		ltot = self.mag()
 		lps = vector.mag(p - self.vs)

@@ -21,8 +21,6 @@ vfl = []
 cell_area = sqr(dom_size/n_cells)
 
 if __name__ == '__main__':
-	# geometry.geometryGenerator('geo2.dat', 'circle', 6)
-
 	dom = geometry.cartesianDomain(dom_size, dom_size, n_cells, n_cells)
 	pts = dom.ptlist()
 

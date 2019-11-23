@@ -12,21 +12,21 @@ A sample case for predicting the aerodynamic performances of an airfoil. It cont
 Suppose that we want to generate a mesh for a Clarky airfoil. The airfoil data is prepared at constant/airfoilData/clarky.dat. To generate a mesh with blockMesh utility, the airfoil should be divided into 3 sections: upper, front, lower sections. Breakpoints between those three sections should be given in the airfoil data file with a character 'b'. For example,
 
 constant/airfoilData/clarky.dat
- ...<br>
- 0.36	0.0916266	<br>
- 0.34	0.0915079	<br>
- 0.32	0.0911857			/* Upper section until this point */ <br>
- 0.3	0.0906804	b     	/* Break point here */ <br>
- 0.28	0.0900016			/* Front section from this point */ <br>
- 0.26	0.089084	<br>
- 0.24	0.0878308	<br>
- ... <br>
+> ...<br>
+> 0.36	0.0916266	<br>
+> 0.34	0.0915079	<br>
+> 0.32	0.0911857			/* Upper section until this point */ <br>
+> 0.3	0.0906804	b     	/* Break point here */ <br>
+> 0.28	0.0900016			/* Front section from this point */ <br>
+> 0.26	0.089084	<br>
+> 0.24	0.0878308	<br>
+> ... <br>
 
 
 Then the airfoil data will be separated and generate sectional data file, such as *airfoil.upper.z0*, *airfoil.upper.z1*, *airfoil.endPoint.z0*, etc. The z0 represents the vertices on z=0 plane while z1 corresponds to z=0.1 plane. These manipulate files will be included in the *blockMeshDict.m4* macro file to generate a blockMeshDict. To manipulate the airfoil data, one should run constant/airfoilData/airfoilmanip.sh as following.
 
 <code>
-$ constant/airfoilData/airfoilmanip.sh constant/airfoilData/clarky.dat <br>
+$ constant/airfoilData/airfoilmanip.sh constant/airfoilData/clarky.dat
 </code>
-
+<br>
 As you can see you should give the airfoil data file after the airfoilmanip.sh command, or it will use constant/airfoilData/airfoil.dat as default.
